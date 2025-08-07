@@ -1,7 +1,7 @@
 import socket
 
 HOST = "127.0.0.1"
-PORT = 2575
+PORT = 5000
 
 hl7_message = "\x0b" + """MSH|^~\\&|URIT|UT-5160|LIS|PC|202508051230||ORU^R01|1234|P|2.3.1
 PID|1||12345||DOE^JOHN

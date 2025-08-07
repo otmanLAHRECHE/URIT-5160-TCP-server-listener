@@ -3,7 +3,7 @@ import json
 import re
 
 HOST = "0.0.0.0"
-PORT = 2575
+PORT = 5000
 
 def normalize_segments(raw):
     # HL7 segments are usually separated by \r but devices sometimes send \n or \r\n.
@@ -30,46 +30,34 @@ def parse_hl7_message(raw):
                 continue
     return results
 
+def handle_data(data):
+    print("📦 Raw HL7 Message Received:")
+    print(repr(data))
+
 def start_server():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
-        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        srv.bind((HOST, PORT))
-        srv.listen()
-        print(f"[HL7 Server] Listening on {HOST}:{PORT} ...")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        print(f"🔌 Listening on {HOST}:{PORT}")
         while True:
-            conn, addr = srv.accept()
+            conn, addr = s.accept()
             with conn:
-                print(f"\n[Connection from {addr}]")
-                data = b''
-                while True:
-                    chunk = conn.recv(4096)
-                    if not chunk:
-                        break
-                    data += chunk
-                if not data:
-                    continue
-
+                print(f"✅ Connection from {addr}")
+                conn.settimeout(10)  # 10 seconds timeout
+                buffer = b''
                 try:
-                    text = data.decode('utf-8', errors='ignore')
-                except Exception:
-                    text = data.decode('latin-1', errors='ignore')
-
-                # Strip HL7 framing characters if present (VT \x0b at start, FS \x1c + CR \x0d at end)
-                text = text.lstrip('\x0b').rstrip('\x1c\r\n')
-                print("[Raw HL7 Message]:")
-                # for readability show each segment on its own line
-                print(normalize_segments(text).replace('\r', '\n'))
-
-                results = parse_hl7_message(text)
-                if results:
-                    print("\n[Extracted Lab Results]:")
-                    for name, val in results.items():
-                        print(f"  {name}: {val}")
-                    with open("latest_lab_results.json", "w", encoding="utf-8") as f:
-                        json.dump(results, f, ensure_ascii=False, indent=2)
-                    print("\nSaved to latest_lab_results.json")
+                    while True:
+                        data = conn.recv(1024)
+                        if not data:
+                            break
+                        buffer += data
+                except socket.timeout:
+                    print("⏰ Timed out waiting for data.")
+                if buffer:
+                    print("📦 Raw HL7 Data:")
+                    print(repr(buffer.decode(errors="ignore")))
                 else:
-                    print("⚠️ No OBX results parsed.")
+                    print("⚠️ No data received from device.")
 
 
 if __name__ == "__main__":
