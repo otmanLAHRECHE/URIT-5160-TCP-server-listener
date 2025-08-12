@@ -1,8 +1,5 @@
+import re
 def parse_hl7(hl7_raw):
-    """
-    Parses HL7 message and extracts OBX results.
-    Returns a list of {name: value} pairs.
-    """
     results = []
     lines = re.split(r'\r?\n', hl7_raw)
 

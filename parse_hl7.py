@@ -1,4 +1,3 @@
-
 import re
 def parse_hl7(hl7_raw):
     results = []
