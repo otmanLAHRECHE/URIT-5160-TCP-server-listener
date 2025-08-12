@@ -1,0 +1,1 @@
+TCP server listener to reseive exams result (HL7) from the automat URIT-5160 / Mindray BC-30s and export it to JSON file to upload the results to the auto-fill chrome-extension (https://github.com/otmanLAHRECHE/lab-auto-fill-extension)
